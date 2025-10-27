@@ -1,50 +1,52 @@
 #include "TH1F.h"
 #include "TF1.h"
-#include "TCanvas.h"
-#include "TRandom2.h"
-#include "TLegend.h"
+#include "TFile.h"
 #include "TStyle.h"
+#include "TRandom2.h"
 #include "TROOT.h"
-#include <vector>
-#include <string>
 
-void fit1a(const char* outpdf="result1.pdf", int ntrials=1000, int entries=1000) {
-  gROOT->SetBatch(kTRUE);
-  gStyle->SetOptStat(0);
 
-  TRandom2 r(0);
-  TH1F h("randomHist1","Random Histogram;x;Entries",100,0,100);
+// fit1.C
+// entries is the number of random samples filled into the histogram
+void fit1(int entries=1000, bool save=false) {
+   //Simple histogram fitting examples
+  gROOT->Reset();  // useful to reset ROOT to a cleaner state
 
-  std::vector<double> v_chi2red, v_prob, v_mu, v_errmu;
-  v_chi2red.reserve(ntrials); v_prob.reserve(ntrials); v_mu.reserve(ntrials); v_errmu.reserve(ntrials);
+  TFile *tf=0;
+  if (save) tf=new TFile("histo.root","recreate");
 
-  for (int t=0; t<ntrials; ++t) {
-    h.Reset();
-    for (int i=0; i<entries; ++i) h.Fill(r.Gaus(50,10));
-    h.Fit("gaus","Q");
-    TF1* f = h.GetFunction("gaus");
-    double chi2 = f->GetChisquare();
-    double ndf  = f->GetNDF();
-    v_chi2red.push_back(ndf>0 ? chi2/ndf : 0.0);
-    v_prob.push_back(f->GetProb());
-    v_mu.push_back(f->GetParameter(1));
-    v_errmu.push_back(f->GetParError(1));
+  TH1F *randomHist1 = new TH1F("randomHist1", "Random Histogram;x;frequency", 100, 0, 100);
+  TRandom2 *generator=new TRandom2(0);  // parameter == seed, 0->use clock
+
+  for (int i=0 ; i<entries ; i++){
+    randomHist1->Fill(generator->Gaus(50,10)); // params: mean, sigma
   }
+  // simple fits may be performed automatically
+  // gStyle->SetOptFit(111);  // show reduced chi2 and params
+  gStyle->SetOptFit(1111); // show reduced chi2, probability, and params
+  randomHist1->Fit("gaus");  
+  randomHist1->DrawCopy("e");  // "e" shows bin errors
+  // Using DrawCopy vs Draw allows us to delete the original histogram
+  // without removing it from the display.  If we save the histogran to a
+  // file and close the file, it will be deleted from memory.
 
-  TH1F h_chi2("h_chi2","Reduced #chi^{2};Reduced #chi^{2};Counts",60,0,3);
-  TH1F h_prob("h_prob","#chi^{2} probability;p-value;Counts",60,0,1);
-  TH1F h_mu("h_mu","Fitted mean;Mean;Counts",60,40,60);
-  TH1F h_emu("h_emu","Error on mean;Error on mean;Counts",60,0,2);
-  for (size_t i=0;i<v_chi2red.size();++i){
-    h_chi2.Fill(v_chi2red[i]); h_prob.Fill(v_prob[i]); h_mu.Fill(v_mu[i]); h_emu.Fill(v_errmu[i]);
+
+  // Above we used a built in function, gaus, in the fit
+  // This function will be associated with the histogram
+  // and may be retrieved to get parameter information
+  // Refer to http://root.cern.ch/root/html/TF1.html
+  // for a complete list of TF1 methods
+
+  TF1 *fitfunc = randomHist1->GetFunction("gaus");
+  cout << "\nFit Params and errors" << endl;
+  cout << fitfunc->GetParameter(0) << " +- " << fitfunc->GetParError(0) << endl;
+  cout << fitfunc->GetParameter(1) << " +- " << fitfunc->GetParError(1) << endl;
+  cout << fitfunc->GetParameter(2) << " +- " << fitfunc->GetParError(2) << endl;
+  cout << "Fit Probability: " << fitfunc->GetProb() << endl; // returns chi^2 p-value
+
+  if (save) {
+    tf->Write();
+    tf->Close();
   }
-
-  std::string lab = "trials N=" + std::to_string(ntrials);
-
-  TCanvas c("c","Exercise 1: Distributions",1000,800); c.Divide(2,2);
-  c.cd(1); h_chi2.SetLineWidth(2); h_chi2.Draw("hist"); { TLegend L(0.68,0.78,0.90,0.90); L.AddEntry(&h_chi2,lab.c_str(),"l"); L.Draw(); }
-  c.cd(2); h_prob.SetLineWidth(2); h_prob.Draw("hist"); { TLegend L(0.68,0.78,0.90,0.90); L.AddEntry(&h_prob,lab.c_str(),"l"); L.Draw(); }
-  c.cd(3); h_mu.SetLineWidth(2);   h_mu.Draw("hist");   { TLegend L(0.68,0.78,0.90,0.90); L.AddEntry(&h_mu,lab.c_str(),"l"); L.Draw(); }
-  c.cd(4); h_emu.SetLineWidth(2);  h_emu.Draw("hist");  { TLegend L(0.68,0.78,0.90,0.90); L.AddEntry(&h_emu,lab.c_str(),"l"); L.Draw(); }
-  c.SaveAs(outpdf);
+  cout << "Use .q to exit root" << endl;
 }
