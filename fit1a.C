@@ -39,12 +39,20 @@ void fit1a(const char* outpdf="result1.pdf", int ntrials=1000, int entries=1000)
     h_chi2.Fill(v_chi2red[i]); h_prob.Fill(v_prob[i]); h_mu.Fill(v_mu[i]); h_emu.Fill(v_errmu[i]);
   }
 
-  std::string lab = "trials N=" + std::to_string(ntrials);
+  TCanvas c("c","Exercise 1: Distributions",1000,800); 
+  c.Divide(2,2);
 
-  TCanvas c("c","Exercise 1: Distributions",1000,800); c.Divide(2,2);
-  c.cd(1); h_chi2.SetLineWidth(2); h_chi2.Draw("hist"); { TLegend L(0.68,0.78,0.90,0.90); L.AddEntry(&h_chi2,lab.c_str(),"l"); L.Draw(); }
-  c.cd(2); h_prob.SetLineWidth(2); h_prob.Draw("hist"); { TLegend L(0.68,0.78,0.90,0.90); L.AddEntry(&h_prob,lab.c_str(),"l"); L.Draw(); }
-  c.cd(3); h_mu.SetLineWidth(2);   h_mu.Draw("hist");   { TLegend L(0.68,0.78,0.90,0.90); L.AddEntry(&h_mu,lab.c_str(),"l"); L.Draw(); }
-  c.cd(4); h_emu.SetLineWidth(2);  h_emu.Draw("hist");  { TLegend L(0.68,0.78,0.90,0.90); L.AddEntry(&h_emu,lab.c_str(),"l"); L.Draw(); }
+  c.cd(1); h_chi2.SetLineWidth(2); h_chi2.Draw("hist");
+  TLegend* L1 = new TLegend(0.68,0.78,0.90,0.90); L1->AddEntry(&h_chi2, ("trials N="+std::to_string(ntrials)).c_str(), "l"); L1->Draw();
+
+  c.cd(2); h_prob.SetLineWidth(2); h_prob.Draw("hist");
+  TLegend* L2 = new TLegend(0.68,0.78,0.90,0.90); L2->AddEntry(&h_prob, ("trials N="+std::to_string(ntrials)).c_str(), "l"); L2->Draw();
+
+  c.cd(3); h_mu.SetLineWidth(2);   h_mu.Draw("hist");
+  TLegend* L3 = new TLegend(0.68,0.78,0.90,0.90); L3->AddEntry(&h_mu,  ("trials N="+std::to_string(ntrials)).c_str(), "l"); L3->Draw();
+
+  c.cd(4); h_emu.SetLineWidth(2);  h_emu.Draw("hist");
+  TLegend* L4 = new TLegend(0.68,0.78,0.90,0.90); L4->AddEntry(&h_emu, ("trials N="+std::to_string(ntrials)).c_str(), "l"); L4->Draw();
+
   c.SaveAs(outpdf);
 }
