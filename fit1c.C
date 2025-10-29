@@ -23,18 +23,17 @@ static double nll_poisson_hist_scaled(const TH1* h, TF1* f, double scale) {
   return s;
 }
 
-void fit1c(const char* outpdf="result3.pdf",
-           const char* filename="histo25.root",
-           const char* histname="randomHist1",
-           int ntoys=5000,
-           unsigned seed=12345) {
+void fit1c(const char* outpdf="result3.pdf", const char* filename="histo25.root", const char* histname="randomHist1", int ntoys=5000, unsigned seed=12345) {  // left seed in their just because assignment asked for p-value and i want to keep the distribution the same for grading process as well
   gROOT->SetBatch(kTRUE);
   gStyle->SetOptStat(0);
 
   TFile fin(filename,"READ");
   TH1F* hdata = nullptr;
   fin.GetObject(histname,hdata);
-  if (!hdata) { printf("hist not found\n"); return; }
+  if (!hdata) {
+      printf("hist not found\n"); 
+      return; 
+  }
 
   TH1F* h = (TH1F*)hdata->Clone("h_work");
   const double xmin = h->GetXaxis()->GetXmin();
@@ -61,11 +60,16 @@ void fit1c(const char* outpdf="result3.pdf",
       double x1 = toy.GetXaxis()->GetBinLowEdge(i);
       double x2 = toy.GetXaxis()->GetBinUpEdge(i);
       double mu = scale * g.Integral(x1,x2);
-      int    y  = rng.Poisson(mu);
+      int y = rng.Poisson(mu);
       toy.SetBinContent(i, y);
     }
     double v = nll_poisson_hist_scaled(&toy, &g, scale);
-    if (t==0) { vmin=v; vmax=v; } else { if (v<vmin) vmin=v; if (v>vmax) vmax=v; }
+    if (t==0) {
+        vmin=v; vmax=v; 
+    } else {
+        if (v<vmin) vmin=v; 
+        if (v>vmax) vmax=v; 
+    }
   }
 
   TH1F hdist("hdist","NLL from toys;NLL;Counts",120, vmin, vmax);
@@ -78,7 +82,7 @@ void fit1c(const char* outpdf="result3.pdf",
       double x1 = toy.GetXaxis()->GetBinLowEdge(i);
       double x2 = toy.GetXaxis()->GetBinUpEdge(i);
       double mu = scale * g.Integral(x1,x2);
-      int    y  = rng.Poisson(mu);
+      int y = rng.Poisson(mu);
       toy.SetBinContent(i, y);
     }
     double v = nll_poisson_hist_scaled(&toy, &g, scale);

@@ -35,7 +35,10 @@ void fit1b(const char* outpdf="result2.pdf", int ntrials=1000, int entries=10) {
 
   TH1F h_mu_chi2("h_mu_chi2","Mean from #chi^{2} fits;Mean;Counts",60,40,60);
   TH1F h_mu_nll ("h_mu_nll","Mean from NLL fits;Mean;Counts",60,40,60);
-  for (size_t i=0;i<v_mu_chi2.size();++i){ h_mu_chi2.Fill(v_mu_chi2[i]); h_mu_nll.Fill(v_mu_nll[i]); }
+  for (size_t i=0;i<v_mu_chi2.size();++i){ 
+      h_mu_chi2.Fill(v_mu_chi2[i]); 
+      h_mu_nll.Fill(v_mu_nll[i]); 
+  }
 
   TCanvas c("c","Exercise 2: Means",900,900); 
   c.Divide(1,2);
